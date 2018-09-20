@@ -2,7 +2,7 @@
 
 ## About
 
-This repository contains Python script for your Google AIY Voice Kit that would plug and play pair it with <a href="https://github.com/Sznapsollo/AKHomeAutomation" target="_blank">AKHomeAUtomation</a> solution present on my other github. However with some changes I am sure it can be used also with other home automation solutions. Take a look below and maybe it will suit you.
+This repository contains Python script for your Google AIY Voice Kit that will plug and play pair it with <a href="https://github.com/Sznapsollo/AKHomeAutomation" target="_blank">AKHomeAUtomation</a> solution present on my other github. However with some changes I am sure it can be used also with other home automation solutions. Take a look below and maybe it will suit you.
 
 Script itself is basically copy of **assistant_library_with_local_commands_demo.py** which is provided in Google AIY Voice Kit and is present by default in /home/pi/AIY-projects-python/src/examples/voice directory.
 
