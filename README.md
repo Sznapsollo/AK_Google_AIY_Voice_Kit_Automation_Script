@@ -18,7 +18,7 @@ This script contains the following changes that make it work with AKHomeAutomati
 
 ## Links
 
-- **<a href="https://youtu.be/AVA4Yp3h82Q" target="_blank">Video describing script and integration with AKHomeAutomation</a>**
+- **<a href="https://youtu.be/WVVZYiWOHOw" target="_blank">Video describing script and integration with AKHomeAutomation</a>**
 - **<a href="https://www.youtube.com/watch?v=C19ARWDYR3c&list=PLjd2MVjW6mhFygrvXyVcdNoq6pHK8MdUW" target="_blank">AKHomeAUtomation Youtube playlist</a>**
 
 Take care!
