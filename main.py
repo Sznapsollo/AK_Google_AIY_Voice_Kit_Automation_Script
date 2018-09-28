@@ -44,7 +44,8 @@ logging.basicConfig(
 	format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
-_remoteUrl = 'http://8.8.8.8/home/executables/';
+_remoteUrl = 'http://8.8.8.8/home/executables/'
+_hotwordRatioThreshold = 0.6
 _items = []
 
 def power_off_pi():
@@ -97,8 +98,9 @@ def similar(a, b):
 
 def checkItem(name):
 
+	returnObject = None
 	status = None
-	if name.endswith(' off'):
+	if name.endswith(' off') or name.endswith(' of'):
 		status = 'off'
 		name = name[:-4]
 	elif name.endswith(' on'):
@@ -107,21 +109,24 @@ def checkItem(name):
 	else:
 		return None
 
-	maxRatio = 0.0
-	maxItem = None
+	returnObject = {'maxRatio': 0.0}
 
 	for item in _items:
 		currentRatio = similar(item['hotword'], name)
-		print('For item "' + item['id'] + '" with hotword "' + item['hotword'] + '" name of "' + name + '" gives score ' + str(currentRatio))
-		if currentRatio > maxRatio:
-				maxRatio = currentRatio
-				maxItem = item
+		if currentRatio > returnObject['maxRatio']:
+			returnObject['maxRatio'] = currentRatio
+			returnObject['id'] = item['id']
+			returnObject['hotword'] = item['hotword']
 	
-	if maxItem is not None:
-		print('Found winner device "' + maxItem['id'] + '" with max score ' + str(maxRatio))
-		return {'name':maxItem['id'], 'status':status}
+	if returnObject['maxRatio'] >= _hotwordRatioThreshold:
+		print('Found winner device "' + returnObject['id']+ '" with max score ' + str(returnObject['maxRatio']))
+		returnObject = {'name':returnObject['id'], 'status':status}
+	elif returnObject['maxRatio'] >= 0:
+		print('Most similar item was "' + returnObject['id'] + '" with hotword "' + returnObject['hotword'] + '" name of "' + name + '" gives score ' + str(returnObject['maxRatio']))
+	else:
+		print('No sufficiently similar item found ')
 
-	return None
+	return returnObject
 
 def say_ip():
 	ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
@@ -158,9 +163,13 @@ def process_event(assistant, event):
 		else:
 			checked = checkItem(text)
 			if checked is not None:
-				t = threading.Thread(target=runItem, args=(checked['name'], checked['status']))
-				t.start()
-				assistant.stop_conversation()
+				if 'name' in checked:
+					t = threading.Thread(target=runItem, args=(checked['name'], checked['status']))
+					t.start()
+					assistant.stop_conversation()
+				else:
+					assistant.stop_conversation()
+					aiy.audio.play_wave('/home/pi/AIY_stuff/nope_sil.wav')
 
 	elif event.type == EventType.ON_END_OF_UTTERANCE:
 		status_ui.status('thinking')
