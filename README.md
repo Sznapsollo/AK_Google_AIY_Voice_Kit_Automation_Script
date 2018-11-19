@@ -9,12 +9,12 @@ Script itself is basically copy of **assistant_library_with_local_commands_demo.
 This script contains the following changes that make it work with AKHomeAutomation (and perhaps other) home automation solution.
 
 - it introduces **getDevicesData** method which is called at the beginnning of script operation. This method contacts home automation server service to receive list of devices (in json format) that would be used by Google Voice Kit. What is crutial is "hotword" property per items that we want to be recognizable by Google Voice Kit.
-- it introduces **checkItem** method which is called when Voice Kit analyzes what user said. If command ends with "on" or "off" this method tries to map rest of the sentence with one of items "hotword". If it succeeds, the script would send url to home automation system with proper values to enable/disable proper device.
+- it introduces **checkItem** method which is called when Voice Kit analyzes what user said. If command ends with "on" or "off" this method tries to map rest of the sentence with one of items "hotword". If it succeeds, the script would send url to home automation system with proper values to enable/disable proper device. "on" or "off" endings can be customized - see variable **_initRecognitionStatuses** which holds all of them and change there.
 
 ## Deployment
 
 - If you wish to use this script with <a href="https://github.com/Sznapsollo/AKHomeAutomation" target="_blank">AKHomeAUtomation</a> all you need to do is change _remoteUrl variable with proper server address.
-- If you wish to integrate it with other systrems you probably need to change the way how you obtain json list of devices and how you send on/of signal to your automation solution.
+- If you wish to integrate it with other systrems you probably need to change the way how you obtain json list of devices and how you send on/off signal to your automation solution.
 
 ## Links
 

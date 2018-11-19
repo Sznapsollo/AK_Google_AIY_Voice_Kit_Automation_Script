@@ -44,6 +44,7 @@ logging.basicConfig(
 	format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
+_initRecognitionStatuses = [{'ending':'off', 'status': 'off'},{'ending':'of', 'status': 'off'},{'ending':'on', 'status': 'on'}]
 _remoteUrl = 'http://8.8.8.8/home/executables/'
 _hotwordRatioThreshold = 0.6
 _items = []
@@ -96,17 +97,25 @@ def getDevicesData():
 def similar(a, b):
 	return SequenceMatcher(None, a, b).ratio()
 
+def removeAllTrailing(command, toRemove):
+	while True:
+		if command.endswith(toRemove):
+			command = command[:(-1)*(len(toRemove))]
+		else:
+			break
+	return command
+
 def checkItem(name):
 
 	returnObject = None
 	status = None
-	if name.endswith(' off') or name.endswith(' of'):
-		status = 'off'
-		name = name[:-4]
-	elif name.endswith(' on'):
-		status = 'on'
-		name = name[:-3]
-	else:
+	for initRecognition in _initRecognitionStatuses:
+		if name.endswith(initRecognition['ending']):
+			status = initRecognition['status']
+			name = removeAllTrailing(name, initRecognition['ending'])
+			name = removeAllTrailing(name, ' ')
+
+	if status is None:
 		return None
 
 	returnObject = {'maxRatio': 0.0}
@@ -117,16 +126,19 @@ def checkItem(name):
 			returnObject['maxRatio'] = currentRatio
 			returnObject['id'] = item['id']
 			returnObject['hotword'] = item['hotword']
-	
+
 	if returnObject['maxRatio'] >= _hotwordRatioThreshold:
 		print('Found winner device "' + returnObject['id']+ '" with max score ' + str(returnObject['maxRatio']))
 		returnObject = {'name':returnObject['id'], 'status':status}
-	elif returnObject['maxRatio'] >= 0:
+	elif 'id' in returnObject and 'hotword' in returnObject and returnObject['maxRatio'] >= 0:
 		print('Most similar item was "' + returnObject['id'] + '" with hotword "' + returnObject['hotword'] + '" name of "' + name + '" gives score ' + str(returnObject['maxRatio']))
 	else:
 		print('No sufficiently similar item found ')
 
-	return returnObject
+	if 'name' in returnObject:
+		return returnObject
+	else:
+		return None
 
 def say_ip():
 	ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
