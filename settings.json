@@ -1,0 +1,2 @@
+{"initRecognitionStatuses": [{"ending":"off", "status": "off"},{"ending":"of", "status": "off"},{"ending":"on", "status": "on"}],"remoteUrl": "http://8.8.8.8/wylaczniki/executables/",
+"hotwordRatioThreshold": 0.6}

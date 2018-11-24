@@ -25,6 +25,8 @@ import logging
 import platform
 import subprocess
 import sys
+import time
+import os
 
 import aiy.assistant.auth_helpers
 from aiy.assistant.library import Assistant
@@ -44,9 +46,7 @@ logging.basicConfig(
 	format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
-_initRecognitionStatuses = [{'ending':'off', 'status': 'off'},{'ending':'of', 'status': 'off'},{'ending':'on', 'status': 'on'}]
-_remoteUrl = 'http://8.8.8.8/home/executables/'
-_hotwordRatioThreshold = 0.6
+_settings = {}
 _items = []
 
 def power_off_pi():
@@ -65,15 +65,20 @@ def terminate():
 def runItem(itemId, status):
 	#aiy.audio.say('ok')
 	print('runItem ' + itemId + ' with status ' + status)
-	url = _remoteUrl + 'toggle.php';
+	url = _settings['remoteUrl'] + 'toggle.php';
 	postData = {'outletId' : itemId, 'outletStatus'  : status, 'outletDelayed': '0'}
 	headers = {'content-type': 'application/json'}
 	r = requests.post(url, data=json.dumps(postData), headers=headers)
 	
+def initVariables():
+	global _settings
+	settingsFile = open(os.path.join(os.path.dirname(__file__),'settings.json'))
+	_settings = json.load(settingsFile)
+	
 def getDevicesData():
 	try:
 		global _items
-		url = _remoteUrl + 'Services.php';
+		url = _settings['remoteUrl'] + 'Services.php';
 		postData = {'service':'CheckItemsData', 'receive' : '1', 'category'  : 'general'}
 		headers = {'content-type': 'application/json'}
 		r = requests.post(url, data=json.dumps(postData), headers=headers)
@@ -89,7 +94,10 @@ def getDevicesData():
 				_items.append(item)
 		#print(_items)
 		
-	except Exception as e:
+	except requests.exceptions.Timeout:
+		time.sleep(10)
+		getDevicesData()
+	except requests.exceptions.RequestException as e:
 		print('Error during getDevicesData')
 		print(str(e))
 		pass
@@ -109,7 +117,7 @@ def checkItem(name):
 
 	returnObject = None
 	status = None
-	for initRecognition in _initRecognitionStatuses:
+	for initRecognition in _settings['initRecognitionStatuses']:
 		if name.endswith(initRecognition['ending']):
 			status = initRecognition['status']
 			name = removeAllTrailing(name, initRecognition['ending'])
@@ -127,7 +135,7 @@ def checkItem(name):
 			returnObject['id'] = item['id']
 			returnObject['hotword'] = item['hotword']
 
-	if returnObject['maxRatio'] >= _hotwordRatioThreshold:
+	if returnObject['maxRatio'] >= _settings['hotwordRatioThreshold']:
 		print('Found winner device "' + returnObject['id']+ '" with max score ' + str(returnObject['maxRatio']))
 		returnObject = {'name':returnObject['id'], 'status':status}
 	elif 'id' in returnObject and 'hotword' in returnObject and returnObject['maxRatio'] >= 0:
@@ -200,6 +208,7 @@ def main():
 		print('Cannot run hotword demo on Pi Zero!')
 		exit(-1)
 
+	initVariables()
 	getDevicesData()
 	
 	#exit(-1)
